@@ -1,0 +1,28 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Install gnome
+      apt: name={{ item }} state=installed
+      with_items:
+        - xorg
+        - gnome-core
+        - gnome-system-tools
+        - gnome-app-install
+
+    - name: Install wireshark
+      apt: name=wireshark
+
+    - name: Install iptables
+      apt: name=iptables
+
+    - name: Enable ip forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes

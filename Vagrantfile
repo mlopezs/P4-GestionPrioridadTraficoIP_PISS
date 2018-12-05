@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "router" do |router|
 
-    router.vm.box = "ubuntu/xenial64"
+    router.vm.box = "ubuntu/trusty64"
     router.vm.hostname = "router"
     router.vm.synced_folder "shared_router", "/shared"
 
@@ -36,12 +36,10 @@ Vagrant.configure("2") do |config|
 
     client.vm.network "private_network", ip: "10.10.1.2"
 
-    client.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get upgrade
-      apt-get install iperf
-      apt-get install sip-tester
-    SHELL
+    client.vm.provision "ansible" do |ansible|
+      ansible.verbose = "v"
+      ansible.playbook = "playbook-client.yml"
+    end
 
   end
 
@@ -55,12 +53,10 @@ Vagrant.configure("2") do |config|
 
     server.vm.network "private_network", ip: "10.10.2.2"
 
-    server.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get upgrade
-      apt-get install iperf
-      apt-get install sip-tester
-    SHELL
+    server.vm.provision "ansible" do |ansible|
+      ansible.verbose = "v"
+      ansible.playbook = "playbook-server.yml"
+    end
 
   end
 

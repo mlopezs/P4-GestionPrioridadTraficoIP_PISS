@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Install iptables
+      apt: name=iptables
+
+    - name: Install iperf
+      apt: name=iperf
+
+    - name: Install sip-tester
+      apt: name=sip-tester
+
+    - name: Delete default eth0
+      shell: "ip route del default dev eth0"
+
+    - name: Add default eth1
+      shell: "ip route add default via 10.10.2.1 dev eth1"

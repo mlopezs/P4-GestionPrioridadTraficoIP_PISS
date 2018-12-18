@@ -9,10 +9,10 @@ Vagrant.configure("2") do |config|
 
     router.vm.box = "ubuntu/trusty64"
     router.vm.hostname = "router"
-    router.vm.synced_folder "shared_router", "/shared"
+    #router.vm.synced_folder "shared_router", "/shared"
 
-    router.vm.network "private_network", ip: "10.10.1.1"
-    router.vm.network "private_network", ip: "10.10.2.1"
+    router.vm.network "private_network", ip: "10.10.1.1", virtualbox__intnet: "clientNetwork"
+    router.vm.network "private_network", ip: "10.10.2.1", virtualbox__intnet: "serverNetwork"
 
     router.vm.provider "virtualbox" do |vb|
       vb.gui = true
@@ -32,9 +32,9 @@ Vagrant.configure("2") do |config|
 
     client.vm.box = "ubuntu/trusty64"
     client.vm.hostname = "client"
-    client.vm.synced_folder "shared_client", "/shared"
+    #client.vm.synced_folder "shared_client", "/shared"
 
-    client.vm.network "private_network", ip: "10.10.1.2"
+    client.vm.network "private_network", ip: "10.10.1.2", virtualbox__intnet: "clientNetwork"
 
     client.vm.provision "ansible" do |ansible|
       ansible.verbose = "v"
@@ -49,9 +49,9 @@ Vagrant.configure("2") do |config|
 
     server.vm.box = "ubuntu/trusty64"
     server.vm.hostname = "server"
-    server.vm.synced_folder "shared_server", "/shared"
+    #server.vm.synced_folder "shared_server", "/shared"
 
-    server.vm.network "private_network", ip: "10.10.2.2"
+    server.vm.network "private_network", ip: "10.10.2.2", virtualbox__intnet: "serverNetwork"
 
     server.vm.provision "ansible" do |ansible|
       ansible.verbose = "v"

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.10.25)  18 DEC 2018 13:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.10.25)  23 DEC 2018 15:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1270,7 +1270,7 @@ LaTeX Info: Redefining \nameref on input line 133.
  ABD: EveryShipout initializing macros
 LaTeX Info: Redefining \. on input line 133.
 LaTeX Info: Redefining \% on input line 133.
-<esilogo.png, id=47, 2007.5pt x 624.3325pt>
+<esilogo.png, id=55, 2007.5pt x 624.3325pt>
 File: esilogo.png Graphic file (type png)
 <use esilogo.png>
 Package pdftex.def Info: esilogo.png  used on input line 136.
@@ -1292,7 +1292,7 @@ LaTeX Font Warning: Font shape `TS1/cmr/m/sc' undefined
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./esilogo.png>]
-<top.png, id=60, 879.285pt x 321.2pt>
+<top.png, id=68, 879.285pt x 321.2pt>
 File: top.png Graphic file (type png)
 <use top.png>
 Package pdftex.def Info: top.png  used on input line 166.
@@ -1347,31 +1347,36 @@ Underfull \hbox (badness 10000) in paragraph at lines 188--191
 
  []
 
-[2]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 208.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 208.
+[2] [3]
+Underfull \hbox (badness 10000) in paragraph at lines 246--247
+
+ []
+
+[4] [5]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 274.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 274.
  (./Memoria.aux
 LaTeX Info: Redefining \. on input line 24.
 LaTeX Info: Redefining \% on input line 24.
 )
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 208.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 208.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 274.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 274.
 Package rerunfilecheck Info: File `Memoria.out' has not changed.
-(rerunfilecheck)             Checksum: 19D8F4D3B71C3C5934F906BA36D23363;276.
+(rerunfilecheck)             Checksum: DA9D492BD601F4E37200155DF8D65C2C;458.
 
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 208.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 274.
  ) 
 Here is how much of TeX's memory you used:
- 21939 strings out of 494170
- 382690 string characters out of 6160095
- 518017 words of memory out of 5000000
- 24908 multiletter control sequences out of 15000+600000
+ 22052 strings out of 494170
+ 383847 string characters out of 6160095
+ 552028 words of memory out of 5000000
+ 24990 multiletter control sequences out of 15000+600000
  13266 words of font info for 46 fonts, out of 8000000 for 9000
  443 hyphenation exceptions out of 8191
- 55i,12n,78p,544b,1407s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,12n,78p,675b,1407s stack positions out of 5000i,500n,10000p,200000b,80000s
  </home/alberto/.texlive2017/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.6
 00pk> </home/alberto/.texlive2017/texmf-var/fonts/pk/ljfour/jknappen/ec/tctt100
 0.600pk> </home/alberto/.texlive2017/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm
@@ -1381,13 +1386,14 @@ Here is how much of TeX's memory you used:
 /share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texli
 ve/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on Memoria.pdf (3 pages, 184917 bytes).
+f-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmtt10.pfb>
+Output written on Memoria.pdf (6 pages, 209640 bytes).
 PDF statistics:
- 129 PDF objects out of 1000 (max. 8388607)
- 91 compressed objects within 1 object stream
- 13 named destinations out of 1000 (max. 500000)
- 151 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 187 PDF objects out of 1000 (max. 8388607)
+ 144 compressed objects within 2 object streams
+ 44 named destinations out of 1000 (max. 500000)
+ 167 words of extra memory for PDF output out of 10000 (max. 10000000)
 

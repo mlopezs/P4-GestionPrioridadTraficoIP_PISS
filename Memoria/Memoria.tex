@@ -47,7 +47,7 @@
 	keywordstyle=\bfseries,
 	%
 	numbers=left,
-	numbersep=15pt,
+	numbersep=13pt,
 	numberstyle=\tiny,
 	numberfirstline = false,
 	breaklines=true,
@@ -58,7 +58,7 @@
 {\lstset{#1}\pagebreak[0]}{\pagebreak[0]}
 
 \lstdefinestyle{consola}
-{basicstyle=\scriptsize\bf\ttfamily,
+{basicstyle=\scriptsize\bf\tiny,
 	backgroundcolor=\color{gray75},
 }
 
@@ -127,7 +127,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \rhead{\theauthor}
-\lhead{\thetitle}
+\lhead{Práctica 4.}
 \cfoot{\thepage}
 
 \begin{document}
@@ -204,5 +204,71 @@ Todo lo anterior se recoge en el archivo \textbf{\textit{Vagrantfile}} y los dis
 \begin{lstlisting}[style=C,numbers=none]
 	vagrant up --provision
 \end{lstlisting}
+
+\section{Configuración de iptables en router, cliente y server.}
+Dado que tanto en la máquina del router como la del cliente, se van a introducir reglas de iptables para el correcto funcionamiento, para no perder estas reglas se va a utilizar \textbf{\textit{iptables-persistent}}, el modo para recuperar todas las reglas cada vez que se inicie la máquina es mediante una \textit{task} cuya función es cargar un archivo con todas las reglas necesarias en el directorio \textbf{\textit{/etc/iptables/rules.v4}}, este directorio se encuentra tanto en la máquina del router como en la máquina del cliente. La regla que hemos utilizado para copiar este archivo en el directorio mencionado es la siguiente:
+
+\begin{lstlisting}[style=C,numbers=none]
+- name: copy iptables
+  copy:
+    src: <archivo a copiar>
+    dest: /etc/iptables/rules.v4
+    owner: root
+    group: root
+    mode: 0644
+  notify: "restore iptables"
+\end{lstlisting}
+
+Como vemos en el código anterior, en la última línea se hace mención a \textbf{\textit{notify}}, lo cual hace necesario la presencia de un manejador, de manera que cada vez que se invoque a la tarea \textbf{\textit{copy tables}}, se va a hacer el \textit{notify}, cuya función es hacer un \textbf{restore} del archivo \textbf{/etc/iptables/rules.v4} que hemos copiado. Esto lo podemos ver en el siguiente código:
+
+\begin{lstlisting}[style=C,numbers=none]
+handlers:
+    - name: restore iptables
+      shell: iptables-restore /etc/iptables/rules.v4
+      listen: "restore iptables
+\end{lstlisting}
+
+\newpage
+\section{Reglas iptables utilizadas en router, cliente y server.}
+\begin{itemize}
+\item \textbf{Router.}
+	\begin{itemize}
+	En el caso del router hemos utilizado las reglas iptables que vienen dadas en el enunciado de la práctica. Estas son:
+\begin{lstlisting}[style=C,numbers=none]		
+iptables -t filter -A INPUT -m dscp --dscp 14 -m limit --limit 5/s --limit-burst 5 -j ACCEPT
+
+iptables -t filter -A INPUT -m dscp --dscp 14 -j DROP		
+\end{lstlisting}
+	Donde los parámetros --limit y --limit-burst significan lo siguiente.
+	\item \textbf{limit.} El módulo limit se utiliza para restringir la tasa de coincidencias, por ejemplo, para suprimir los mensajes de registro. Sólo coincidirá con un número determinado de veces por segundo (por defecto 3 coincidencias por hora, con una ráfaga de 5). Se necesitan dos argumentos opcionales: 
+		\begin{itemize}
+			\item \textbf{-limit.} Seguido de un número y una unidad, especifica el número medio máximo de coincidencias que puede permitirse por segundo. Nos permite configurar el tiempo que tiene que pasar para que esta regla se cumpla entre dos paquetes.
+			\item \textbf{--limit-burst.} Seguido de un número que indica la cantidad máxima de paquetes antes de que se active el límite anterior. \\
+		\end{itemize}
+	\end{itemize}
+	
+\item \textbf{Client.}
+	Dado que vamos a marcar paquetes, la tabla que vamos a usar es \textbf{mangle}. Por un lado, el tráfico RTP lo vamos a marcar con \textbf{Expedited Forwarding}, el \textbf{DSCP} recomendado para Expedited Forwarding es \textbf{46 (101110)}. Por otro lado, el tráfico SIP lo vamos a marcar como \textbf{Assured Forwarding 11}, cuyo valor es 10. De modo que las reglas nos quedan de la siguiente manera:
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -p udp --dport 5060 -j DSCP --set-dscp 10
+
+iptables -t mangle -A OUTPUT -p udp --dport 10000:20000 -j DSCP --set-dscp 46
+\end{lstlisting}
+\begin{itemize}
+
+\item La primera regla permite el tráfico udp saliente del cliente que tiene como puerto destino (dport) el puerto 5060, el cual es el puerto dedicado al protocolo SIP. Como hemos dicho antes, este tráfico se ha marcado con AF11 con el valor 10.
+
+\item La segunda regla permite el tráfico udp saliente del cliente que tiene como destino el rango de puertos que corresponden al protocolo RTP (10000:20000) y dicho tráfico se ha marcado como Expedited Forwarding con el valor 46.
+\end{itemize}
+
+\item \textbf{Server.}
+Las reglas son las mismas que en el cliente, sólo con una diferencia, que en lugar de utilizar \textbf{--dport} (destination port), en el server se va a utilizar \textbf{--sport} (source port), lo demás, está configurado igual que en las reglas del cliente.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -p udp --sport 5060 -j DSCP --set-dscp 10
+
+iptables -t mangle -A OUTPUT -p udp --sport 10000:20000 -j DSCP --set-dscp 46
+\end{lstlisting}
+
+\end{itemize}
 
 \end{document}

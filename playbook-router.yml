@@ -17,7 +17,16 @@
       apt: name=wireshark
 
     - name: Install iptables
-      apt: name=iptables
+      apt: name=iptables-persistent
+
+    - name: copy iptables
+      copy:
+        src: iptablesRulesRouter
+        dest: /etc/iptables/rules.v4
+        owner: root
+        group: root
+        mode: 0644
+      notify: "restore iptables"
 
     - name: Enable ip forwarding
       sysctl:
@@ -26,3 +35,8 @@
         sysctl_set: yes
         state: present
         reload: yes
+
+  handlers:
+    - name: restore iptables
+      shell: iptables-restore /etc/iptables/rules.v4
+      listen: "restore iptables"

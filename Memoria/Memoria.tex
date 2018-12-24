@@ -205,7 +205,8 @@ Todo lo anterior se recoge en el archivo \textbf{\textit{Vagrantfile}} y los dis
 	vagrant up --provision
 \end{lstlisting}
 
-\section{Configuración de iptables en router, cliente y server.}
+\section{Marcado de paquetes.}
+\subsection{Configuración de iptables en router, cliente y server.}
 Dado que tanto en la máquina del router como la del cliente, se van a introducir reglas de iptables para el correcto funcionamiento, para no perder estas reglas se va a utilizar \textbf{\textit{iptables-persistent}}, el modo para recuperar todas las reglas cada vez que se inicie la máquina es mediante una \textit{task} cuya función es cargar un archivo con todas las reglas necesarias en el directorio \textbf{\textit{/etc/iptables/rules.v4}}, este directorio se encuentra tanto en la máquina del router como en la máquina del cliente. La regla que hemos utilizado para copiar este archivo en el directorio mencionado es la siguiente:
 
 \begin{lstlisting}[style=C,numbers=none]
@@ -229,7 +230,7 @@ handlers:
 \end{lstlisting}
 
 \newpage
-\section{Reglas iptables utilizadas en router, cliente y server.}
+\subsection{Reglas iptables utilizadas en router, cliente y server.}
 \begin{itemize}
 \item \textbf{Router.}
 	\begin{itemize}
@@ -253,6 +254,8 @@ iptables -t filter -A INPUT -m dscp --dscp 14 -j DROP
 iptables -t mangle -A OUTPUT -p udp --dport 5060 -j DSCP --set-dscp 10
 
 iptables -t mangle -A OUTPUT -p udp --dport 10000:20000 -j DSCP --set-dscp 46
+
+iptables -A OUTPUT -j DSCP --set-dscp 0
 \end{lstlisting}
 \begin{itemize}
 
@@ -261,17 +264,101 @@ iptables -t mangle -A OUTPUT -p udp --dport 10000:20000 -j DSCP --set-dscp 46
 \item La segunda regla permite el tráfico udp saliente del cliente que tiene como destino el rango de puertos que corresponden al protocolo RTP (10000:20000) y dicho tráfico se ha marcado como Expedited Forwarding con el valor 46.
 \end{itemize}
 
+\item La tercera regla se utiliza para el marcado de paquetes Best Effort.
+
 \item \textbf{Server.}
-Las reglas son las mismas que en el cliente, sólo con una diferencia, que en lugar de utilizar \textbf{--dport} (destination port), en el server se va a utilizar \textbf{--sport} (source port), lo demás, está configurado igual que en las reglas del cliente.
+Las reglas son las mismas que en el cliente, %sólo con una diferencia, que en lugar de utilizar \textbf{--dport} (destination port), en el server se va a utilizar \textbf{--sport} (source port), lo demás, está configurado igual que en las reglas del cliente.
 \begin{lstlisting}[style=C,numbers=none]
 iptables -t mangle -A OUTPUT -p udp --sport 5060 -j DSCP --set-dscp 10
 
 iptables -t mangle -A OUTPUT -p udp --sport 10000:20000 -j DSCP --set-dscp 46
+
+iptables -A OUTPUT -j DSCP --set-dscp 0x00
 \end{lstlisting}
 
 \end{itemize}
 \newpage
 
+\section{Análisis del rendimiento.}
+Para la realización de este apartado se va a utilizar la herramienta \textbf{iperf}. Lo primero que vamos a hacer es utilizar la herramienta para ver cual es el ancho de banda sin incluir las reglas iptables definidas en el apartado anterior. Para establecer la comunicación:
+\begin{lstlisting}[style=C,numbers=none]
+$ iperf -s 			// Máquina del server.
+$ iperf -c 10.10.2.2 -i 2	// Máquina del router.
+\end{lstlisting}
+
+Tras realizar esta prueba, los resultados son los siguientes:
+
+\begin{lstlisting}[style=C,numbers=none]
+root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
+------------------------------------------------------------
+Client connecting to 10.10.2.2, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.10.2.1 port 37999 connected with 10.10.2.2 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 2.0 sec   290 MBytes  1.22 Gbits/sec
+[  3]  2.0- 4.0 sec   301 MBytes  1.26 Gbits/sec
+[  3]  4.0- 6.0 sec   301 MBytes  1.26 Gbits/sec
+[  3]  6.0- 8.0 sec   293 MBytes  1.23 Gbits/sec
+[  3]  8.0-10.0 sec   293 MBytes  1.23 Gbits/sec
+[  3]  0.0-10.0 sec  1.44 GBytes  1.24 Gbits/sec
+\end{lstlisting}
+
+Si ahora esta misma prueba la hacemos incluyendo las llamadas de \textbf{sipp}, el resultado es el siguiente:
+
+\begin{lstlisting}[style=C,numbers=none]
+root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
+------------------------------------------------------------
+Client connecting to 10.10.2.2, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.10.2.1 port 38063 connected with 10.10.2.2 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 2.0 sec   230 MBytes   964 Mbits/sec
+[  3]  2.0- 4.0 sec   251 MBytes  1.05 Gbits/sec
+[  3]  4.0- 6.0 sec   234 MBytes   983 Mbits/sec
+[  3]  6.0- 8.0 sec   241 MBytes  1.01 Gbits/sec
+[  3]  8.0-10.0 sec   238 MBytes   999 Mbits/sec
+[  3]  0.0-10.0 sec  1.17 GBytes  1.00 Gbits/sec
+\end{lstlisting}
+
+Vemos que ya el ancho de banda es más bajo que cuando únicamente se utilizaba iperf. Esta reducción es debido al tráfico generado por \textit{sipp}.
+
+Llegados aquí, introducimos las reglas iptables para realizar las mismas pruebas anteriores.\\
+Con las reglas iptables activadas y con iperf, el resultado es el siguiente:
+\begin{lstlisting}[style=C,numbers=none]
+Client connecting to 10.10.2.2, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.10.2.1 port 53610 connected with 10.10.2.2 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 2.0 sec   269 MBytes  1.13 Gbits/sec
+[  3]  2.0- 4.0 sec   276 MBytes  1.16 Gbits/sec
+[  3]  4.0- 6.0 sec   285 MBytes  1.20 Gbits/sec
+[  3]  6.0- 8.0 sec   290 MBytes  1.22 Gbits/sec
+[  3]  8.0-10.0 sec   296 MBytes  1.24 Gbits/sec
+[  3]  0.0-10.0 sec  1.38 GBytes  1.19 Gbits/sec
+\end{lstlisting}
+Observamos de nuevo, que el ancho de banda es menor que en el primer listado de código, donde no se utilizaba ni \textit{iptables} ni \textit{sipp}. Con esto deducimos que el marcado de los paquetes está funcionando bien. \\
+
+La última prueba es utilizando las reglas \textit{iptables} y \textit{sipp}, tras ejecutar dicha prueba el resultado es el siguiente:
+\begin{lstlisting}[style=C,numbers=none]
+root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
+------------------------------------------------------------
+Client connecting to 10.10.2.2, TCP port 5001
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.10.2.1 port 53698 connected with 10.10.2.2 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 2.0 sec   239 MBytes  1.00 Gbits/sec
+[  3]  2.0- 4.0 sec   241 MBytes  1.01 Gbits/sec
+[  3]  4.0- 6.0 sec   251 MBytes  1.05 Gbits/sec
+[  3]  6.0- 8.0 sec   262 MBytes  1.10 Gbits/sec
+[  3]  8.0-10.0 sec   250 MBytes  1.05 Gbits/sec
+[  3]  0.0-10.0 sec  1.21 GBytes  1.04 Gbits/sec
+\end{lstlisting}
+
+De nuevo, se ha reducido el ancho de banda. Se están produciendo descartes de paquetes marcados como Best Effort, mientras que los paquetes RTP y SIP tienen el ancho de banda necesario para sus comunicaciones.
 \section{Bibliografía}
 
 \begin{itemize}
@@ -280,6 +367,10 @@ iptables -t mangle -A OUTPUT -p udp --sport 10000:20000 -j DSCP --set-dscp 46
 	\url{https://netfilter.org/documentation/HOWTO/packet-filtering-HOWTO-7.html#ss7.3}\\ \\
 	\url{https://www.cisco.com/c/en/us/support/docs/quality-of-service-qos/qos-packet-marking/10103-dscpvalues.html}\\ \\
 	\url{https://community.rti.com/kb/how-set-dscp-flag-your-system}
+	
+	\item Acerca de sipp.
+	
+	\url{http://sipp.sourceforge.net/doc/reference.html}
 \end{itemize}
 
 \end{document}

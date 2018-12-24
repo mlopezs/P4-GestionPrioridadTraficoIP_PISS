@@ -2,6 +2,8 @@
 \BOOKMARK [2][-]{subsection.1.1}{Cliente y servidor.}{section.1}% 2
 \BOOKMARK [2][-]{subsection.1.2}{Router.}{section.1}% 3
 \BOOKMARK [2][-]{subsection.1.3}{Archivos de configuraci\363n e inicializaci\363n.}{section.1}% 4
-\BOOKMARK [1][-]{section.2}{Configuraci\363n de iptables en router, cliente y server.}{}% 5
-\BOOKMARK [1][-]{section.3}{Reglas iptables utilizadas en router, cliente y server.}{}% 6
-\BOOKMARK [1][-]{section.4}{Bibliograf\355a}{}% 7
+\BOOKMARK [1][-]{section.2}{Marcado de paquetes.}{}% 5
+\BOOKMARK [2][-]{subsection.2.1}{Configuraci\363n de iptables en router, cliente y server.}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.2}{Reglas iptables utilizadas en router, cliente y server.}{section.2}% 7
+\BOOKMARK [1][-]{section.3}{An\341lisis del rendimiento.}{}% 8
+\BOOKMARK [1][-]{section.4}{Bibliograf\355a}{}% 9

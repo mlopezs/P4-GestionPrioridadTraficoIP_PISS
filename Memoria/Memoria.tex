@@ -248,33 +248,32 @@ iptables -t filter -A INPUT -m dscp --dscp 14 -j DROP
 		\end{itemize}
 	\end{itemize}
 	
-\item \textbf{Client.}
-	Dado que vamos a marcar paquetes, la tabla que vamos a usar es \textbf{mangle}. Por un lado, el tráfico RTP lo vamos a marcar con \textbf{Expedited Forwarding}, el \textbf{DSCP} recomendado para Expedited Forwarding es \textbf{46 (101110)}. Por otro lado, el tráfico SIP lo vamos a marcar como \textbf{Assured Forwarding 11}, cuyo valor es 10. De modo que las reglas nos quedan de la siguiente manera:
+\item \textbf{Cliente y servidor.}
+	Dado que vamos a marcar paquetes, la tabla que vamos a usar es \textbf{mangle}. Por un lado, el tráfico RTP lo vamos a marcar con \textbf{Expedited Forwarding}, esta clase es la máxima prioridad para el marcado de paquetes RTP, debido a que no queremos una pérdida de paquetes, ya que estos paquetes contienen la voz de una comunicación, por lo que en caso de pérdida, la conversación no se desarrollaría de forma completa. Por otro lado, el tráfico SIP lo vamos a marcar como \textbf{Assured Forwarding 11}, este tráfico se utiliza para la señalización durante la llamada y establecer las comunicaciones, por lo que no es necesario marcarlo con una máxima prioridad como es el caso del tráfico RTP. Por último, el resto de paquetes, los vamos a marcar  como \textbf{Best Effort}, es la categoría con menor prioridad en el marcado de paquetes. \\
+\newpage
+Las reglas nos quedan de la siguiente manera:
 \begin{lstlisting}[style=C,numbers=none]
-iptables -t mangle -A OUTPUT -p udp --dport 5060 -j DSCP --set-dscp 10
+/---- Trafico RTP ----/
+iptables -t mangle -A OUTPUT -p udp -m udp --dport 10000:20000 -j DSCP --set-dscp-class ef
 
-iptables -t mangle -A OUTPUT -p udp --dport 10000:20000 -j DSCP --set-dscp 46
+/---- Trafico SIP ----/
+iptables -t mangle -A OUTPUT -p udp -m udp --dport 5060 -j DSCP --set-dscp-class af11
 
+/---- Resto de paquetes ----/
 iptables -A OUTPUT -j DSCP --set-dscp 0
 \end{lstlisting}
 \begin{itemize}
 
-\item La primera regla permite el tráfico udp saliente del cliente que tiene como puerto destino (dport) el puerto 5060, el cual es el puerto dedicado al protocolo SIP. Como hemos dicho antes, este tráfico se ha marcado con AF11 con el valor 10.
+\item La primera regla permite el tráfico udp saliente que tiene como destino el rango de puertos que corresponden al protocolo RTP (10000:20000) y dicho tráfico se ha marcado como Expedited Forwarding.
 
-\item La segunda regla permite el tráfico udp saliente del cliente que tiene como destino el rango de puertos que corresponden al protocolo RTP (10000:20000) y dicho tráfico se ha marcado como Expedited Forwarding con el valor 46.
-\end{itemize}
+
+\item La segunda regla permite el tráfico udp saliente que tiene como puerto destino (dport) el puerto 5060, el cual es el puerto dedicado al protocolo SIP. Como hemos dicho antes, este tráfico se ha marcado con AF11.
+
 
 \item La tercera regla se utiliza para el marcado de paquetes Best Effort.
 
-\item \textbf{Server.}
-Las reglas son las mismas que en el cliente, %sólo con una diferencia, que en lugar de utilizar \textbf{--dport} (destination port), en el server se va a utilizar \textbf{--sport} (source port), lo demás, está configurado igual que en las reglas del cliente.
-\begin{lstlisting}[style=C,numbers=none]
-iptables -t mangle -A OUTPUT -p udp --sport 5060 -j DSCP --set-dscp 10
+\end{itemize}
 
-iptables -t mangle -A OUTPUT -p udp --sport 10000:20000 -j DSCP --set-dscp 46
-
-iptables -A OUTPUT -j DSCP --set-dscp 0x00
-\end{lstlisting}
 
 \end{itemize}
 \newpage

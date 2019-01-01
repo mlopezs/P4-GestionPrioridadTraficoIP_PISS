@@ -5,14 +5,14 @@
     - name: Update apt
       apt: update_cache=yes
 
-    - name: Install iptables
-      apt: name=iptables
-
     - name: Install iperf
       apt: name=iperf
 
     - name: Install sip-tester
       apt: name=sip-tester
+
+    - name: Install iptables
+      apt: name=iptables-persistent
 
     - name: copy iptables
       copy:

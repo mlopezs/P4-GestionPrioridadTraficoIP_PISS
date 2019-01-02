@@ -20,7 +20,7 @@
     - name: Add default eth1
       shell: "ip route add default via 10.10.1.1 dev eth1"
 
-    - name: copy iptables
+    - name: Copy iptables rules
       copy:
         src: iptablesRulesClient
         dest: /etc/iptables/rules.v4
@@ -28,6 +28,16 @@
         group: root
         mode: 0644
       notify: "restore iptables"
+
+    - name: Copy docs (1)
+      copy:
+        src: g711a.pcap
+        dest: /home/vagrant/g711a.pcap
+
+    - name: Copy docs (2)
+      copy:
+        src: dtmf_2833_1.pcap
+        dest: /home/vagrant/dtmf_2833_1.pcap
 
   handlers:
     - name: restore iptables

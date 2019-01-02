@@ -14,6 +14,12 @@
     - name: Install iptables
       apt: name=iptables-persistent
 
+    - name: Delete default eth0
+      shell: "ip route del default dev eth0"
+
+    - name: Add default eth1
+      shell: "ip route add default via 10.10.1.1 dev eth1"
+
     - name: copy iptables
       copy:
         src: iptablesRulesClient
@@ -22,12 +28,6 @@
         group: root
         mode: 0644
       notify: "restore iptables"
-
-    - name: Delete default eth0
-      shell: "ip route del default dev eth0"
-
-    - name: Add default eth1
-      shell: "ip route add default via 10.10.1.1 dev eth1"
 
   handlers:
     - name: restore iptables

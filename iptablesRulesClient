@@ -12,8 +12,8 @@ COMMIT
 :FORWARD ACCEPT [0:0]
 :OUTPUT ACCEPT [31:2452]
 :POSTROUTING ACCEPT [31:2452]
+-A OUTPUT -j DSCP --set-dscp 0x00
 -A OUTPUT -p udp -m udp --dport 5060 -j DSCP --set-dscp 0x0a
 -A OUTPUT -p udp -m udp --dport 10000:20000 -j DSCP --set-dscp 0x2e
--A OUTPUT -j DSCP --set-dscp 0x00
 COMMIT
 # Completed on Tue Dec 25 16:58:34 2018

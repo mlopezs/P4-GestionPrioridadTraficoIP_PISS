@@ -11,13 +11,21 @@
         - xorg
         - gnome-core
         - gnome-system-tools
-        - task-gnome-desktop
+        - gnome-app-install
 
     - name: Install wireshark
       apt: name=wireshark
 
     - name: Install iptables
       apt: name=iptables-persistent
+
+    - name: Enable ip forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
 
     - name: copy iptables
       copy:
@@ -27,14 +35,6 @@
         group: root
         mode: 0644
       notify: "restore iptables"
-
-    - name: Enable ip forwarding
-      sysctl:
-        name: net.ipv4.ip_forward
-        value: 1
-        sysctl_set: yes
-        state: present
-        reload: yes
 
   handlers:
     - name: restore iptables

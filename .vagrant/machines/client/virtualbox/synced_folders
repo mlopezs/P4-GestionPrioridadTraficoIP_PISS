@@ -1,1 +1,1 @@
-{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/alberto/Documentos/P4-GestionPrioridadTraficoIP_PISS","disabled":false,"__vagrantfile":true,"owner":"vagrant","group":"vagrant"}}}
+{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/marcos/UNI_VagrantMachines/PlanIntegSistServ_P4-GesPrioIP/P4-GestionPrioridadTraficoIP_PISS","disabled":false,"__vagrantfile":true}}}

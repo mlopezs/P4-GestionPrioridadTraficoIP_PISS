@@ -226,7 +226,7 @@ Como vemos en el código anterior, en la última línea se hace mención a \text
 handlers:
     - name: restore iptables
       shell: iptables-restore /etc/iptables/rules.v4
-      listen: "restore iptables
+      listen: "restore iptables"
 \end{lstlisting}
 
 \newpage
@@ -282,28 +282,33 @@ iptables -A OUTPUT -j DSCP --set-dscp 0
 Para la realización de este apartado se va a utilizar la herramienta \textbf{iperf}. Lo primero que vamos a hacer es utilizar la herramienta para ver cual es el ancho de banda sin incluir las reglas iptables definidas en el apartado anterior. Para establecer la comunicación:
 \begin{lstlisting}[style=C,numbers=none]
 $ iperf -s 			// Máquina del server.
-$ iperf -c 10.10.2.2 -i 2	// Máquina del router.
+$ iperf -c 10.10.2.2 -i 1	// Máquina del cliente.
 \end{lstlisting}
 
 Tras realizar esta prueba, los resultados son los siguientes:
 
 \begin{lstlisting}[style=C,numbers=none]
-root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
+root@client:/home/vagrant# iperf -c 10.10.2.2 -i 1
 ------------------------------------------------------------
 Client connecting to 10.10.2.2, TCP port 5001
 TCP window size: 85.0 KByte (default)
 ------------------------------------------------------------
-[  3] local 10.10.2.1 port 37999 connected with 10.10.2.2 port 5001
+[  3] local 10.10.1.2 port 55627 connected with 10.10.2.2 port 5001
 [ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 2.0 sec   290 MBytes  1.22 Gbits/sec
-[  3]  2.0- 4.0 sec   301 MBytes  1.26 Gbits/sec
-[  3]  4.0- 6.0 sec   301 MBytes  1.26 Gbits/sec
-[  3]  6.0- 8.0 sec   293 MBytes  1.23 Gbits/sec
-[  3]  8.0-10.0 sec   293 MBytes  1.23 Gbits/sec
+[  3]  0.0- 1.0 sec   154 MBytes  1.29 Gbits/sec
+[  3]  1.0- 2.0 sec   154 MBytes  1.29 Gbits/sec
+[  3]  2.0- 3.0 sec   151 MBytes  1.27 Gbits/sec
+[  3]  3.0- 4.0 sec   145 MBytes  1.22 Gbits/sec
+[  3]  4.0- 5.0 sec   143 MBytes  1.20 Gbits/sec
+[  3]  5.0- 6.0 sec   146 MBytes  1.22 Gbits/sec
+[  3]  6.0- 7.0 sec   147 MBytes  1.23 Gbits/sec
+[  3]  7.0- 8.0 sec   143 MBytes  1.20 Gbits/sec
+[  3]  8.0- 9.0 sec   155 MBytes  1.30 Gbits/sec
+[  3]  9.0-10.0 sec   139 MBytes  1.17 Gbits/sec
 [  3]  0.0-10.0 sec  1.44 GBytes  1.24 Gbits/sec
 \end{lstlisting}
 
-Si ahora esta misma prueba la hacemos incluyendo las llamadas de \textbf{sipp}, el resultado es el siguiente:
+Si ahora esta misma prueba la hacemos incluyendo las llamadas de \textbf{SIPp}, el resultado es el siguiente:
 
 \begin{lstlisting}[style=C,numbers=none]
 root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
@@ -321,7 +326,7 @@ TCP window size: 85.0 KByte (default)
 [  3]  0.0-10.0 sec  1.17 GBytes  1.00 Gbits/sec
 \end{lstlisting}
 
-Vemos que ya el ancho de banda es más bajo que cuando únicamente se utilizaba iperf. Esta reducción es debido al tráfico generado por \textit{sipp}.
+Vemos que ya el ancho de banda es más bajo que cuando únicamente se utilizaba iperf. Esta reducción es debido al tráfico generado por \textit{SIPp}.
 
 Llegados aquí, introducimos las reglas iptables para realizar las mismas pruebas anteriores.\\
 Con las reglas iptables activadas y con iperf, el resultado es el siguiente:
@@ -338,9 +343,9 @@ TCP window size: 85.0 KByte (default)
 [  3]  8.0-10.0 sec   296 MBytes  1.24 Gbits/sec
 [  3]  0.0-10.0 sec  1.38 GBytes  1.19 Gbits/sec
 \end{lstlisting}
-Observamos de nuevo, que el ancho de banda es menor que en el primer listado de código, donde no se utilizaba ni \textit{iptables} ni \textit{sipp}. Con esto deducimos que el marcado de los paquetes está funcionando bien. \\
+Observamos de nuevo, que el ancho de banda es menor que en el primer listado de código, donde no se utilizaba ni \textit{iptables} ni \textit{SIPp}. Con esto deducimos que el marcado de los paquetes está funcionando bien. \\
 
-La última prueba es utilizando las reglas \textit{iptables} y \textit{sipp}, tras ejecutar dicha prueba el resultado es el siguiente:
+La última prueba es utilizando las reglas \textit{iptables} y \textit{SIPp}, tras ejecutar dicha prueba el resultado es el siguiente:
 \begin{lstlisting}[style=C,numbers=none]
 root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
 ------------------------------------------------------------
@@ -367,7 +372,7 @@ De nuevo, se ha reducido el ancho de banda. Se están produciendo descartes de p
 	\url{https://www.cisco.com/c/en/us/support/docs/quality-of-service-qos/qos-packet-marking/10103-dscpvalues.html}\\ \\
 	\url{https://community.rti.com/kb/how-set-dscp-flag-your-system}
 	
-	\item Acerca de sipp.
+	\item Acerca de SIPp.
 	
 	\url{http://sipp.sourceforge.net/doc/reference.html}
 \end{itemize}

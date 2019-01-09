@@ -20,7 +20,7 @@
     - name: Add default eth1
       shell: "ip route add default via 10.10.1.1 dev eth1"
 
-    - name: copy iptables
+    - name: Copy iptables rules
       copy:
         src: iptablesRulesClient
         dest: /etc/iptables/rules.v4

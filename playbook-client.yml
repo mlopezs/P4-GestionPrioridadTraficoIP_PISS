@@ -29,16 +29,6 @@
         mode: 0644
       notify: "restore iptables"
 
-    - name: Copy docs (1)
-      copy:
-        src: g711a.pcap
-        dest: /home/vagrant/g711a.pcap
-
-    - name: Copy docs (2)
-      copy:
-        src: dtmf_2833_1.pcap
-        dest: /home/vagrant/dtmf_2833_1.pcap
-
   handlers:
     - name: restore iptables
       shell: iptables-restore /etc/iptables/rules.v4

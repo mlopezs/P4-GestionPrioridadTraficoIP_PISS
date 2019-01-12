@@ -34,6 +34,11 @@ Vagrant.configure("2") do |config|
 
     client.vm.network "private_network", ip: "10.10.1.2", virtualbox__intnet: "clientNetwork"
 
+    client.vm.provider "virtualbox" do |vb|
+      vb.gui = true
+      vb.memory = 2048
+    end
+
     client.vm.provision "ansible" do |ansible|
       ansible.verbose = "v"
       ansible.playbook = "playbook-client.yml"
@@ -49,6 +54,11 @@ Vagrant.configure("2") do |config|
     server.vm.hostname = "server"
 
     server.vm.network "private_network", ip: "10.10.2.2", virtualbox__intnet: "serverNetwork"
+
+    server.vm.provider "virtualbox" do |vb|
+      vb.gui = true
+      vb.memory = 2048
+    end
 
     server.vm.provision "ansible" do |ansible|
       ansible.verbose = "v"

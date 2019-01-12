@@ -5,11 +5,22 @@
     - name: Update apt
       apt: update_cache=yes
 
+    - name: Install gnome
+      apt: name={{ item }} state=installed
+      with_items:
+        - xorg
+        - gnome-core
+        - gnome-system-tools
+        - gnome-app-install
+
     - name: Install iperf
       apt: name=iperf
 
     - name: Install sip-tester
       apt: name=sip-tester
+
+    - name: Install linphone
+      apt: name=linphone
 
     - name: Install iptables
       apt: name=iptables-persistent

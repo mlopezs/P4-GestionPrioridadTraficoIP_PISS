@@ -1,0 +1,408 @@
+\documentclass[11pt]{article}
+\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8]{inputenc} % Codificación
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}} % Carpeta en la cual se van a buscar las imagenes
+\usepackage{subfigure}	% Permite la Inclusión de subfiguras
+%\usepackage{parskip} % Borrar identación de parrafos.
+\setlength{\parskip}{3mm} % Longitud del espaciado entre parrafos
+\usepackage[hidelinks]{hyperref} % Referencias (links)
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\setpapersize{A4} % Formato del papel - A4
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm} % Margenes
+\usepackage{paralist} % Permite un mayor control sobre las listas
+\usepackage{textcomp,marvosym,pifont} % Generación de símbolos especiales
+\usepackage[usenames,dvipsnames,svgnames,x11names,table]{xcolor}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Complemento para insertar código en la memoria:
+% A partir de 'Listados de código cómodos y resultones con listings' de David Villa
+% http://crysol.org/es/node/909
+
+\usepackage{color}
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+
+\usepackage{listings}
+\lstset{ frame=Ltb,
+	framerule=0pt,
+	aboveskip=0.5cm,
+	framextopmargin=3pt,
+	framexbottommargin=3pt,
+	framexleftmargin=0.4cm,
+	framesep=0pt,
+	rulesep=.4pt,
+	backgroundcolor=\color{gray97},
+	rulesepcolor=\color{black},
+	texcl=true,
+	%
+	stringstyle=\ttfamily,
+	showstringspaces = false,
+	basicstyle=\small\ttfamily,
+	commentstyle=\color{gray45},
+	keywordstyle=\bfseries,
+	%
+	numbers=left,
+	numbersep=13pt,
+	numberstyle=\tiny,
+	numberfirstline = false,
+	breaklines=true,
+}
+
+% minimizar fragmentado de listados
+\lstnewenvironment{listing}[1][]
+{\lstset{#1}\pagebreak[0]}{\pagebreak[0]}
+
+\lstdefinestyle{consola}
+{basicstyle=\scriptsize\bf\tiny,
+	backgroundcolor=\color{gray75},
+}
+
+\lstdefinestyle{C}
+{language=C,
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{float} % Permite usar H en las figuras, de manera que se coloquen en la posición exacta en la que están en el código.
+
+
+% Añade un comando para crear indicaciones de pulsación de teclas
+\usepackage{tikz} % Paquete especializado en gráficos
+\usetikzlibrary{shadows} % Necesario para poder crear nuevo comando de indicación de pulsación de tecla.
+\newcommand*\tecla[1]{%   
+	\tikz[baseline=(key.base)]
+	\node[%
+	draw,
+	fill=white,
+	drop shadow={shadow xshift=0.25ex,shadow yshift=-0.25ex,fill=black,opacity=0.75},
+	rectangle,
+	rounded corners=2pt,
+	inner sep=1pt,
+	line width=0.5pt,
+	font=\scriptsize\sffamily
+	](key) {#1\strut}
+	;
+}
+
+\newif\ifspanish % Condicional que permite seleccionar el lenguage.
+\spanishtrue
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%					Principales variables del documento					%%%%%%%%%
+
+\title{Práctica 4. Gestión de prioridad de tráfico en IP.}							% Titulo
+\author{Alberto Salas Seguín y Marcos López Sobrino.}							% Autor
+\date{\today}											% Fecha
+\newcommand{\subject}{Planificación e Integración de Sistemas y Servicios.}						% Asignatura
+\newcommand{\course}{4º Grado en Ingeniería Informática.}		% Curso
+
+%\spanishfalse	% Descomentar esta línea si el trabajo está en inglés
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifspanish
+	\usepackage[spanish]{babel} % Paquete de español
+	\newcommand{\dateText}{Fecha:}
+	\renewcommand{\lstlistingname}{Listado} % Renombrar listados para que aparezcan en español.
+	% Algoritmos
+	\usepackage[ruled,vlined,spanish]{algorithm2e} % Permite pseudocódigos. NECESARIO INSTALAR texlive-science (sudo apt-get install texlive-science)
+\else
+	\usepackage[english]{babel} % Paquete de inglés
+	\newcommand{\dateText}{Date:}
+	% Algoritmos
+	\usepackage[ruled,vlined,english]{algorithm2e}
+\fi
+
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{Práctica 4.}
+\cfoot{\thepage}
+
+\begin{document}
+\begin{titlepage}
+	\centering
+    \includegraphics[scale = 0.25]{esilogo.png}\\[1.0 cm]	% Logo de la universidad
+    \textsc{\LARGE Universidad de Castilla-La Mancha}\\[0.5 cm]	% Nombre de la universidad
+    \textsc{\LARGE Escuela Superior de Informática}\\[2.0 cm]
+	\textsc{\Large \textbf{\subject}}\\[0.5 cm]				% Asignatura
+	\textsc{\large \course}\\[0.5 cm]						% Curso
+	\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+	{ \huge \bfseries \thetitle}\\
+	\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+	
+	\begin{minipage}{0.4\textwidth}
+		\begin{flushleft} \large
+			\emph{Autor:}\\
+			\textbf{\theauthor}
+			\end{flushleft}
+			\end{minipage}~
+			\begin{minipage}{0.4\textwidth}
+			\begin{flushright} \large
+			\emph{\dateText} \\
+			\thedate
+		\end{flushright}
+	\end{minipage}\\[1.5 cm]
+ 
+	\vfill
+	
+\end{titlepage}
+
+\tableofcontents
+\newpage
+\section{Entorno de trabajo.}
+El entorno de trabajo utilizado han sido 3 máquinas virtuales gestionadas mediante Vagrant, con la imagen \textbf{\textit{ubuntu/trusty64}}. Una de ellas actúa como cliente, otra como servidor y otra como router entre ambas. A continuación, explicamos la configuración de las redes, de las máquinas, y los paquetes instalados.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{top.png}
+\caption{Topología de la red.}
+\end{figure}
+
+\subsection{Cliente y servidor.} 
+Como vemos en la figura anterior, la red del cliente, que corresponde a la interfaz \textbf{eth1} del router, tiene como IP \textbf{10.10.1.0}; mientras que la red del servidor, que corresponde a la interfaz \textbf{eth2} del router, tiene como IP \textbf{10.10.2.0}. \\ \\
+Para el correcto funcionamiento de las comunicaciones, hay que indicarle a la máquina cuál es la ruta por defecto, para ello, se ejecutan los siguientes comandos:
+
+\begin{lstlisting}[style=C, numbers=none]
+$ sudo ip route del default dev eth0
+$ sudo ip route add default via <ip_router> dev eth1
+\end{lstlisting}
+donde \textit{ip\_router} sería la dirección IP de la interfaz del router dentro de la red correspondiente. \\ \\
+\newpage
+Los paquetes necesarios para el funcionamiento de la práctica en el caso del cliente y el servidor son:
+\begin{itemize}
+\item \textbf{iptables-persistent}
+\item \textbf{iperf}
+\end{itemize}
+
+\subsection{Router.}
+A la máquina del router se le ha instalado un entorno gráfico para poder usar cómodamente la herramienta \textbf{Wireshark}. Además, se le han asignado 2048 MB de RAM. Por otra parte, se ha configurado las interfaces de red con la dirección \textbf{.1} de la red correspondiente, tal y como vemos en la figura 1. Adicionalmente, para que la máquina actúe como router se debe activar el \textbf{IP forwarding}, para ello, en el playbook correspondiente del router se ha añadido una regla específica. \\ \\
+Por último, en el router se han instalado los siguientes paquetes:
+\begin{itemize}
+\item Para la interfaz gráfica:
+	\begin{itemize}
+		\item \textbf{xorg}
+		\item \textbf{gnome-core}
+		\item \textbf{gnome-system-tools}
+		\item \textbf{gnome-app-install}
+	\end{itemize}
+\item \textbf{wireshark}
+\item \textbf{iptables-persistent}			
+\end{itemize}
+
+\subsection{Archivos de configuración e inicialización.}
+Todo lo anterior se recoge en el archivo \textbf{\textit{Vagrantfile}} y los distintos \textbf{\textit{playbooks}}, que se pueden encontrar junto a este documento. Para poner en funcionamiento el entorno de trabajo, ejecutamos:
+\begin{lstlisting}[style=C,numbers=none]
+	vagrant up --provision
+\end{lstlisting}
+
+\section{Marcado de paquetes.}
+\subsection{Configuración de iptables.}
+Dado que tanto en la máquina del router como la del cliente, se van a introducir reglas de iptables para el correcto funcionamiento, para no perder estas reglas se va a utilizar \textbf{\textit{iptables-persistent}}, el modo para recuperar todas las reglas cada vez que se inicie la máquina es mediante una \textit{task} cuya función es cargar un archivo con todas las reglas necesarias en el directorio \textbf{\textit{/etc/iptables/rules.v4}}, este directorio se encuentra tanto en la máquina del router como en la máquina del cliente. La regla que hemos utilizado para copiar este archivo en el directorio mencionado es la siguiente:
+
+\begin{lstlisting}[style=C,numbers=none]
+- name: copy iptables
+  copy:
+    src: <archivo a copiar>
+    dest: /etc/iptables/rules.v4
+    owner: root
+    group: root
+    mode: 0644
+  notify: "restore iptables"
+\end{lstlisting}
+
+Como vemos en el código anterior, en la última línea se hace mención a \textbf{\textit{notify}}, lo cual hace necesario la presencia de un manejador, de manera que cada vez que se invoque a la tarea \textbf{\textit{copy tables}}, se va a hacer el \textit{notify}, cuya función es hacer un \textbf{restore} del archivo \textbf{/etc/iptables/rules.v4} que hemos copiado. Esto lo podemos ver en el siguiente código:
+
+\begin{lstlisting}[style=C,numbers=none]
+handlers:
+    - name: restore iptables
+      shell: iptables-restore /etc/iptables/rules.v4
+      listen: "restore iptables
+\end{lstlisting}
+
+\newpage
+\subsection{Reglas iptables utilizadas.}
+\begin{itemize}
+\item \textbf{Router.}
+	\begin{itemize}
+	En el caso del router hemos utilizado las reglas iptables que vienen dadas en el enunciado de la práctica. Estas son:
+\begin{lstlisting}[style=C,numbers=none]		
+iptables -t filter -A INPUT -m dscp --dscp 14 -m limit --limit 5/s --limit-burst 5 -j ACCEPT
+
+iptables -t filter -A INPUT -m dscp --dscp 14 -j DROP		
+\end{lstlisting}
+	Donde los parámetros --limit y --limit-burst significan lo siguiente.
+	\item \textbf{limit.} El módulo limit se utiliza para restringir la tasa de coincidencias, por ejemplo, para suprimir los mensajes de registro. Sólo coincidirá con un número determinado de veces por segundo (por defecto 3 coincidencias por hora, con una ráfaga de 5). Se necesitan dos argumentos opcionales: 
+		\begin{itemize}
+			\item \textbf{-limit.} Seguido de un número y una unidad, especifica el número medio máximo de coincidencias que puede permitirse por segundo. Nos permite configurar el tiempo que tiene que pasar para que esta regla se cumpla entre dos paquetes.
+			\item \textbf{--limit-burst.} Seguido de un número que indica la cantidad máxima de paquetes antes de que se active el límite anterior. \\
+		\end{itemize}
+	\end{itemize}
+	
+\item \textbf{Cliente y servidor.}
+	Dado que vamos a marcar paquetes, la tabla que vamos a usar es \textbf{mangle}. Por un lado, el tráfico RTP lo vamos a marcar con \textbf{Expedited Forwarding}, esta clase es la máxima prioridad para el marcado de paquetes RTP, debido a que no queremos una pérdida de paquetes, ya que estos paquetes contienen la voz de una comunicación, por lo que en caso de pérdida, la conversación no se desarrollaría de forma completa. Por otro lado, el tráfico SIP lo vamos a marcar como \textbf{Assured Forwarding 11}, este tráfico se utiliza para la señalización durante la llamada y establecer las comunicaciones, por lo que no es necesario marcarlo con una máxima prioridad como es el caso del tráfico RTP. Por último, el resto de paquetes, los vamos a marcar  como \textbf{Best Effort}, es la categoría con menor prioridad en el marcado de paquetes. \\
+\newpage
+Las reglas nos quedan de la siguiente manera:
+\begin{itemize}
+
+\item Resto de paquetes.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -j DSCP --set-dscp 0
+\end{lstlisting}
+
+\item Tráfico SIP.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -p udp -m udp --dport 5060 -j DSCP --set-dscp-class af11
+
+iptables -t mangle -A OUTPUT -p tcp -m tcp --dport 5060 -j DSCP --set-dscp-class af11
+\end{lstlisting}
+Estas reglas, permiten el tráfico udp y tcp saliente que tiene como destino el puerto 5060 (dport), que es el puerto dedicado al protocolo SIP. Como hemos dicho antes, este tráfico se ha marcado con AF11. \\
+
+\item Tráfico RTP.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -p udp -m udp --dport 6970:6999 -j DSCP --set-dscp-class ef
+
+iptables -t mangle -A OUTPUT -p tcp -m tcp --dport 6970:6999 -j DSCP --set-dscp-class ef
+\end{lstlisting}
+
+Estas reglas, permiten el tráfico udp y tcp saliente que tiene como destino el rango de puertos recomendados por la IETF que son del puerto 6970 al 6999.
+\end{itemize}
+
+\end{itemize}
+\newpage
+
+\section{Análisis del rendimiento.}
+Para la realización de este apartado se va a utilizar la herramienta \textbf{iperf}. Lo primero que vamos a hacer es utilizar la herramienta para ver cual es el ancho de banda sin incluir el marcado de paquetes. Para establecer la comunicación:
+\begin{lstlisting}[style=C,numbers=none]
+$ iperf -s 		// Máquina del server.
+$ iperf -c 10.10.2.2	// Máquina del router.
+\end{lstlisting}
+
+Tras realizar esta prueba, el ancho de banda obtenido:
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.8]{anchodebandasin.jpg}
+\caption{Ancho de banda sin marcado.}
+\end{figure}
+
+A continuación, se muestran los anchos de banda usando el marcado de paquetes. Estos anchos de banda se han medido ejecutando \textit{iperf} de manera concurrente en tres terminales de la máquina \textit{cliente} y en tres terminales de la máquina \textit{servidor}. Hay que ejecutar iperf en tres puertos concretos:
+
+\begin{itemize}
+\item Puerto \textbf{1234} para el resto de tráfico.
+%\includegraphics[scale=0.5]{puerto1234Server.jpg}
+\begin{center}
+\includegraphics[width=6.5cm]{puerto1234Server.jpg}
+\hspace{0.5cm}
+\includegraphics[width=6.5cm]{puerto1234Client.jpg}
+\end{center}
+
+\begin{center}
+\textit{Fig. 3: Ejecución de \textit{iperf} en el \textit{servidor}.}
+\hspace{0.5cm}
+\textit{Fig. 4: Ejecución de \textit{iperf} en el \textit{cliente}.}
+\end{center}
+
+
+\newpage
+\item Puerto \textbf{5060} para el tráfico \textit{SIP}.
+\begin{center}
+\includegraphics[width=6.5cm]{puerto5060Server.jpg}
+\hspace{0.5cm}
+\includegraphics[width=6.5cm]{puerto5060Client.jpg}
+\end{center}
+
+\begin{center}
+\textit{Fig. 5: Ejecución de \textit{iperf} en el \textit{servidor}.}
+\hspace{0.5cm}
+\textit{Fig. 6: Ejecución de \textit{iperf} en el \textit{cliente}.}
+\end{center}
+
+\item Puerto \textbf{6980} para el tráfico \textit{RTP}.
+\begin{center}
+\includegraphics[width=6.5cm]{puerto6980Server.jpg}
+\hspace{0.5cm}
+\includegraphics[width=6.5cm]{puerto6980Client.jpg}
+\end{center}
+
+\begin{center}
+\textit{Fig. 7: Ejecución de \textit{iperf} en el \textit{servidor}.}
+\hspace{0.5cm}
+\textit{Fig. 8: Ejecución de \textit{iperf} en el \textit{cliente}.}
+\end{center}
+\end{itemize}
+
+
+Observando las imágenes anteriores, vemos que el reparto del ancho de banda de la \textit{Figura 2} se ha repartido de la manera esperada según el marcaje de los paquetes. En \textit{Fig. 7} y \textit{Fig. 8}, que corresponden con el tráfico en uno de los puertos \textbf{RTP}, obtenemos el mayor ancho de banda (\textbf{575 Mbits/sec}) porque los paquetes estaban marcados como \textit{Expedited Forwarding}. En \textit{Fig 3.} y \textit{Fig.4}, se obtiene un ancho de banda de \textbf{474 Mbits/sec}, el menor de entre los tres casos, pues los paquetes están marcados como \textit{Best Effort}. En \textit{Fig 5.} y \textit{Fig. 6}, correspondientes con el tráfico \textbf{SIP}, es donde obtenemos un ancho de banda comprendido entre los dos anteriores (\textbf{500 Mbits/sec}); esto se justifica porque los paquetes están marcados como \textit{Assured Forwarding}.
+\newpage
+
+\subsection{Captura de paquetes mediante Wireshark.}
+En esta sección, se muestran capturas de Wireshark de paquetes que simulan \textit{RTP} y \textit{SIP}, además de un paquete \textit{TCP} perteneciente a un flujo de otro conjunto de puertos.
+
+Para comprobar el marcaje del paquete, en la siguientes imágenes, observamos la línea ``\textit{Differentiated Services Field}'';
+en el campo DSCP, aparecerá \textbf{CS0} para el caso de los paquetes marcados como \textbf{Best Effort}, \textbf{AF11} para los paquetes marcados como \textbf{Assured Forwarding}, y \textbf{EF PHB} para los paquetes marcados como \textbf{Expedited Forwarding}.
+
+\begin{itemize}
+\item Expedited Forwarding.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{EF.jpg}
+\caption{Paquetes con marcado Expedited Forwarding.}
+\end{figure}
+
+\newpage
+\item Assured Forwarding 11.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{AF11.jpg}
+\caption{Paquetes con marcado Assured Forwarding.}
+\end{figure}
+
+\newpage
+\item Best Effort.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{BestEffort.jpg}
+\caption{Paquetes con marcado Best Effort.}
+\end{figure}
+
+\end{itemize}
+\newpage
+
+\section{Incidencias surgidas en el transcurso de la práctica.}
+Durante el desarrollo de la pŕactica, han surgido importantes incidencias. La más destacada, fue la imposibilidad de generar tráfico RTP. Al principio, usabámos \textit{sipp} para simular llamadas, lo que debería generar tanto tráfico SIP como RTP, pero no era así. Buscamos durante bastante tiempo por todos los medios, pero no conseguimos encontrar una solución al problema.\\
+Tras esto, acudimos a tutorías, y comenzamos a usar \textit{sipp} y generar tráfico en los puertos de RTP. Para ello, mandamos paquetes por los puertos asignados a RTP usando, primero, scripts propios en python, y después, el módulo  \textit{SimpleHTTPServer} desde el servidor, y \textit{wget} en el cliente, con varios procesos. Por diferentes motivos, tampoco conseguimos de esta manera el objetivo de la práctica.\\
+El siguiente paso fue intentarlo estableciendo llamadas reales; para ello, instalamos una interfaz gráfica y \textit{linphone} en el cliente y servidor. Tras configurarlo, conseguimos hacer la llamada, pero al descolgar el programa se cerraba por un error. Dedicamos tiempo a informarnos sobre el error e intentar solucionarlo, pero vimos que muchas personas reportaban esta incidencia para la cual no había una solución. Pensamos que podía ser por la máquina utilizada (\textit{ubuntu/trusty64}), pero probamos con una máquina Debian y tras instalar linphone y probar de nuevo a realizar la llamada, seguía produciéndose el mismo error por lo que decidimos no perder más tiempo en ello y optar por la última opción.\\
+Esta última opción, aportada por el profesor, es la que se presenta en los epígrafes anteriores.\\ \\
+También hubo algunos inconvenientes, lejos de la generación de tráfico RTP, relacionados con la puesta en marcha del escenario, o las reglas \textit{iptables}, pero se pudieron solucionar en un periodo de tiempo reducido. \\
+
+\section{Repositorio.}
+A continuación, adjuntamos el enlace de nuestro repositorio en \textit{GitHub}, donde se pueden ver los distintos pasos que hemos ido realizando para abordar la práctica.\\
+También están incluidos todos los archivos referentes a \textit{Vagrant, Ansible, iptables}, etc., además de la carpeta ``Memoria''. \\ \\
+El enlace del repositorio es: \\ \url{https://github.com/mlopezs/P4-GestionPrioridadTraficoIP_PISS}
+\newpage
+\section{Bibliografía}
+
+\begin{itemize}
+	\item Configuración reglas Iptables.
+
+	\url{https://netfilter.org/documentation/HOWTO/packet-filtering-HOWTO-7.html#ss7.3}\\ \\
+	\url{https://www.cisco.com/c/en/us/support/docs/quality-of-service-qos/qos-packet-marking/10103-dscpvalues.html}\\ \\
+	\url{https://community.rti.com/kb/how-set-dscp-flag-your-system}
+	
+	\item Acerca de sipp.
+	
+	\url{http://sipp.sourceforge.net/doc/reference.html}
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,33 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Install iperf
+      apt: name=iperf
+
+    - name: Install iptables
+      apt: name=iptables-persistent
+
+    - name: Delete default eth0
+      shell: ip route del default dev eth0
+
+    - name: Add default eth1
+      shell: ip route add default via 10.10.1.1 dev eth1
+
+    - name: Copy iptables rules
+      copy:
+        src: iptablesRulesClientServer
+        dest: /etc/iptables/rules.v4
+        owner: root
+        group: root
+        mode: 0644
+      notify: "restore iptables"
+
+  handlers:
+    - name: restore iptables
+      shell: iptables-restore /etc/iptables/rules.v4
+      listen: "restore iptables"

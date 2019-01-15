@@ -1,0 +1,43 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+  
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Install gnome
+      apt: name={{ item }} state=installed
+      with_items:
+        - xorg
+        - gnome-core
+        - gnome-system-tools
+        - gnome-app-install
+
+    - name: Install wireshark
+      apt: name=wireshark
+
+    - name: Install iptables
+      apt: name=iptables-persistent
+
+    - name: Enable ip forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Copy iptables rules
+      copy:
+        src: iptablesRulesRouter
+        dest: /etc/iptables/rules.v4
+        owner: root
+        group: root
+        mode: 0644
+      notify: "restore iptables"
+
+  handlers:
+    - name: restore iptables
+      shell: iptables-restore /etc/iptables/rules.v4
+      listen: "restore iptables"

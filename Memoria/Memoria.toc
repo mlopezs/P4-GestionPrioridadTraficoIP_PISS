@@ -1,0 +1,13 @@
+\babel@toc {spanish}{}
+\contentsline {section}{\numberline {1}Entorno de trabajo.}{2}{section.1}
+\contentsline {subsection}{\numberline {1.1}Cliente y servidor.}{2}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Router.}{3}{subsection.1.2}
+\contentsline {subsection}{\numberline {1.3}Archivos de configuraci\IeC {\'o}n e inicializaci\IeC {\'o}n.}{3}{subsection.1.3}
+\contentsline {section}{\numberline {2}Marcado de paquetes.}{4}{section.2}
+\contentsline {subsection}{\numberline {2.1}Configuraci\IeC {\'o}n de iptables.}{4}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Reglas iptables utilizadas.}{5}{subsection.2.2}
+\contentsline {section}{\numberline {3}An\IeC {\'a}lisis del rendimiento.}{7}{section.3}
+\contentsline {subsection}{\numberline {3.1}Captura de paquetes mediante Wireshark.}{9}{subsection.3.1}
+\contentsline {section}{\numberline {4}Incidencias surgidas en el transcurso de la pr\IeC {\'a}ctica.}{12}{section.4}
+\contentsline {section}{\numberline {5}Repositorio.}{12}{section.5}
+\contentsline {section}{\numberline {6}Bibliograf\IeC {\'\i }a}{13}{section.6}

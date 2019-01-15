@@ -159,6 +159,8 @@
 	
 \end{titlepage}
 
+\tableofcontents
+\newpage
 \section{Entorno de trabajo.}
 El entorno de trabajo utilizado han sido 3 máquinas virtuales gestionadas mediante Vagrant, con la imagen \textbf{\textit{ubuntu/trusty64}}. Una de ellas actúa como cliente, otra como servidor y otra como router entre ambas. A continuación, explicamos la configuración de las redes, de las máquinas, y los paquetes instalados.
 \begin{figure}[hbtp]
@@ -179,13 +181,12 @@ donde \textit{ip\_router} sería la dirección IP de la interfaz del router dent
 \newpage
 Los paquetes necesarios para el funcionamiento de la práctica en el caso del cliente y el servidor son:
 \begin{itemize}
-\item \textbf{iptables}
+\item \textbf{iptables-persistent}
 \item \textbf{iperf}
-\item \textbf{sip-tester}
 \end{itemize}
 
 \subsection{Router.}
-A la máquina del router se le ha instalado un entorno gráfico para poder usar cómodamente la herramienta \textbf{Wireshark}. Además, se le han asignado 2048 MB de RAM. Por otra parte, se ha configurado las interfaces de red con la dirección \textbf{.1} de la red correspondiente, tal y como vemos en la figura. Adicionalmente, para que la máquina actúe como router se debe activar el \textbf{IP forwarding}, para ello, en el playbook correspondiente del router se ha añadido una regla específica. \\ \\
+A la máquina del router se le ha instalado un entorno gráfico para poder usar cómodamente la herramienta \textbf{Wireshark}. Además, se le han asignado 2048 MB de RAM. Por otra parte, se ha configurado las interfaces de red con la dirección \textbf{.1} de la red correspondiente, tal y como vemos en la figura 1. Adicionalmente, para que la máquina actúe como router se debe activar el \textbf{IP forwarding}, para ello, en el playbook correspondiente del router se ha añadido una regla específica. \\ \\
 Por último, en el router se han instalado los siguientes paquetes:
 \begin{itemize}
 \item Para la interfaz gráfica:
@@ -196,7 +197,7 @@ Por último, en el router se han instalado los siguientes paquetes:
 		\item \textbf{gnome-app-install}
 	\end{itemize}
 \item \textbf{wireshark}
-\item \textbf{iptables}			
+\item \textbf{iptables-persistent}			
 \end{itemize}
 
 \subsection{Archivos de configuración e inicialización.}
@@ -206,7 +207,7 @@ Todo lo anterior se recoge en el archivo \textbf{\textit{Vagrantfile}} y los dis
 \end{lstlisting}
 
 \section{Marcado de paquetes.}
-\subsection{Configuración de iptables en router, cliente y server.}
+\subsection{Configuración de iptables.}
 Dado que tanto en la máquina del router como la del cliente, se van a introducir reglas de iptables para el correcto funcionamiento, para no perder estas reglas se va a utilizar \textbf{\textit{iptables-persistent}}, el modo para recuperar todas las reglas cada vez que se inicie la máquina es mediante una \textit{task} cuya función es cargar un archivo con todas las reglas necesarias en el directorio \textbf{\textit{/etc/iptables/rules.v4}}, este directorio se encuentra tanto en la máquina del router como en la máquina del cliente. La regla que hemos utilizado para copiar este archivo en el directorio mencionado es la siguiente:
 
 \begin{lstlisting}[style=C,numbers=none]
@@ -226,11 +227,11 @@ Como vemos en el código anterior, en la última línea se hace mención a \text
 handlers:
     - name: restore iptables
       shell: iptables-restore /etc/iptables/rules.v4
-      listen: "restore iptables"
+      listen: "restore iptables
 \end{lstlisting}
 
 \newpage
-\subsection{Reglas iptables utilizadas en router, cliente y server.}
+\subsection{Reglas iptables utilizadas.}
 \begin{itemize}
 \item \textbf{Router.}
 	\begin{itemize}
@@ -252,117 +253,144 @@ iptables -t filter -A INPUT -m dscp --dscp 14 -j DROP
 	Dado que vamos a marcar paquetes, la tabla que vamos a usar es \textbf{mangle}. Por un lado, el tráfico RTP lo vamos a marcar con \textbf{Expedited Forwarding}, esta clase es la máxima prioridad para el marcado de paquetes RTP, debido a que no queremos una pérdida de paquetes, ya que estos paquetes contienen la voz de una comunicación, por lo que en caso de pérdida, la conversación no se desarrollaría de forma completa. Por otro lado, el tráfico SIP lo vamos a marcar como \textbf{Assured Forwarding 11}, este tráfico se utiliza para la señalización durante la llamada y establecer las comunicaciones, por lo que no es necesario marcarlo con una máxima prioridad como es el caso del tráfico RTP. Por último, el resto de paquetes, los vamos a marcar  como \textbf{Best Effort}, es la categoría con menor prioridad en el marcado de paquetes. \\
 \newpage
 Las reglas nos quedan de la siguiente manera:
-\begin{lstlisting}[style=C,numbers=none]
-/---- Trafico RTP ----/
-iptables -t mangle -A OUTPUT -p udp -m udp --dport 10000:20000 -j DSCP --set-dscp-class ef
-
-/---- Trafico SIP ----/
-iptables -t mangle -A OUTPUT -p udp -m udp --dport 5060 -j DSCP --set-dscp-class af11
-
-/---- Resto de paquetes ----/
-iptables -A OUTPUT -j DSCP --set-dscp 0
-\end{lstlisting}
 \begin{itemize}
 
-\item La primera regla permite el tráfico udp saliente que tiene como destino el rango de puertos que corresponden al protocolo RTP (10000:20000) y dicho tráfico se ha marcado como Expedited Forwarding.
+\item Resto de paquetes.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -j DSCP --set-dscp 0
+\end{lstlisting}
 
+\item Tráfico SIP.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -p udp -m udp --dport 5060 -j DSCP --set-dscp-class af11
 
-\item La segunda regla permite el tráfico udp saliente que tiene como puerto destino (dport) el puerto 5060, el cual es el puerto dedicado al protocolo SIP. Como hemos dicho antes, este tráfico se ha marcado con AF11.
+iptables -t mangle -A OUTPUT -p tcp -m tcp --dport 5060 -j DSCP --set-dscp-class af11
+\end{lstlisting}
+Estas reglas, permiten el tráfico udp y tcp saliente que tiene como destino el puerto 5060 (dport), que es el puerto dedicado al protocolo SIP. Como hemos dicho antes, este tráfico se ha marcado con AF11. \\
 
+\item Tráfico RTP.
+\begin{lstlisting}[style=C,numbers=none]
+iptables -t mangle -A OUTPUT -p udp -m udp --dport 6970:6999 -j DSCP --set-dscp-class ef
 
-\item La tercera regla se utiliza para el marcado de paquetes Best Effort.
+iptables -t mangle -A OUTPUT -p tcp -m tcp --dport 6970:6999 -j DSCP --set-dscp-class ef
+\end{lstlisting}
 
+Estas reglas, permiten el tráfico udp y tcp saliente que tiene como destino el rango de puertos recomendados por la IETF que son del puerto 6970 al 6999.
 \end{itemize}
-
 
 \end{itemize}
 \newpage
 
 \section{Análisis del rendimiento.}
-Para la realización de este apartado se va a utilizar la herramienta \textbf{iperf}. Lo primero que vamos a hacer es utilizar la herramienta para ver cual es el ancho de banda sin incluir las reglas iptables definidas en el apartado anterior. Para establecer la comunicación:
+Para la realización de este apartado se va a utilizar la herramienta \textbf{iperf}. Lo primero que vamos a hacer es utilizar la herramienta para ver cual es el ancho de banda sin incluir el marcado de paquetes. Para establecer la comunicación:
 \begin{lstlisting}[style=C,numbers=none]
-$ iperf -s 			// Máquina del server.
-$ iperf -c 10.10.2.2 -i 1	// Máquina del cliente.
+$ iperf -s 		// Máquina del server.
+$ iperf -c 10.10.2.2	// Máquina del router.
 \end{lstlisting}
 
-Tras realizar esta prueba, los resultados son los siguientes:
+Tras realizar esta prueba, el ancho de banda obtenido:
 
-\begin{lstlisting}[style=C,numbers=none]
-root@client:/home/vagrant# iperf -c 10.10.2.2 -i 1
-------------------------------------------------------------
-Client connecting to 10.10.2.2, TCP port 5001
-TCP window size: 85.0 KByte (default)
-------------------------------------------------------------
-[  3] local 10.10.1.2 port 55627 connected with 10.10.2.2 port 5001
-[ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 1.0 sec   154 MBytes  1.29 Gbits/sec
-[  3]  1.0- 2.0 sec   154 MBytes  1.29 Gbits/sec
-[  3]  2.0- 3.0 sec   151 MBytes  1.27 Gbits/sec
-[  3]  3.0- 4.0 sec   145 MBytes  1.22 Gbits/sec
-[  3]  4.0- 5.0 sec   143 MBytes  1.20 Gbits/sec
-[  3]  5.0- 6.0 sec   146 MBytes  1.22 Gbits/sec
-[  3]  6.0- 7.0 sec   147 MBytes  1.23 Gbits/sec
-[  3]  7.0- 8.0 sec   143 MBytes  1.20 Gbits/sec
-[  3]  8.0- 9.0 sec   155 MBytes  1.30 Gbits/sec
-[  3]  9.0-10.0 sec   139 MBytes  1.17 Gbits/sec
-[  3]  0.0-10.0 sec  1.44 GBytes  1.24 Gbits/sec
-\end{lstlisting}
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.8]{anchodebandasin.jpg}
+\caption{Ancho de banda sin marcado.}
+\end{figure}
 
-Si ahora esta misma prueba la hacemos incluyendo las llamadas de \textbf{SIPp}, el resultado es el siguiente:
+A continuación, se muestran los anchos de banda usando el marcado de paquetes. Estos anchos de banda se han medido ejecutando \textit{iperf} de manera concurrente en tres terminales de la máquina \textit{cliente} y en tres terminales de la máquina \textit{servidor}. Hay que ejecutar iperf en tres puertos concretos:
 
-\begin{lstlisting}[style=C,numbers=none]
-root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
-------------------------------------------------------------
-Client connecting to 10.10.2.2, TCP port 5001
-TCP window size: 85.0 KByte (default)
-------------------------------------------------------------
-[  3] local 10.10.2.1 port 38063 connected with 10.10.2.2 port 5001
-[ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 2.0 sec   230 MBytes   964 Mbits/sec
-[  3]  2.0- 4.0 sec   251 MBytes  1.05 Gbits/sec
-[  3]  4.0- 6.0 sec   234 MBytes   983 Mbits/sec
-[  3]  6.0- 8.0 sec   241 MBytes  1.01 Gbits/sec
-[  3]  8.0-10.0 sec   238 MBytes   999 Mbits/sec
-[  3]  0.0-10.0 sec  1.17 GBytes  1.00 Gbits/sec
-\end{lstlisting}
+\begin{itemize}
+\item Puerto \textbf{1234} para el resto de tráfico.
+%\includegraphics[scale=0.5]{puerto1234Server.jpg}
+\begin{center}
+\includegraphics[width=6.5cm]{puerto1234Server.jpg}
+\hspace{0.5cm}
+\includegraphics[width=6.5cm]{puerto1234Client.jpg}
+\end{center}
 
-Vemos que ya el ancho de banda es más bajo que cuando únicamente se utilizaba iperf. Esta reducción es debido al tráfico generado por \textit{SIPp}.
+\begin{center}
+\textit{Fig. 3: Ejecución de \textit{iperf} en el \textit{servidor}.}
+\hspace{0.5cm}
+\textit{Fig. 4: Ejecución de \textit{iperf} en el \textit{cliente}.}
+\end{center}
 
-Llegados aquí, introducimos las reglas iptables para realizar las mismas pruebas anteriores.\\
-Con las reglas iptables activadas y con iperf, el resultado es el siguiente:
-\begin{lstlisting}[style=C,numbers=none]
-Client connecting to 10.10.2.2, TCP port 5001
-TCP window size: 85.0 KByte (default)
-------------------------------------------------------------
-[  3] local 10.10.2.1 port 53610 connected with 10.10.2.2 port 5001
-[ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 2.0 sec   269 MBytes  1.13 Gbits/sec
-[  3]  2.0- 4.0 sec   276 MBytes  1.16 Gbits/sec
-[  3]  4.0- 6.0 sec   285 MBytes  1.20 Gbits/sec
-[  3]  6.0- 8.0 sec   290 MBytes  1.22 Gbits/sec
-[  3]  8.0-10.0 sec   296 MBytes  1.24 Gbits/sec
-[  3]  0.0-10.0 sec  1.38 GBytes  1.19 Gbits/sec
-\end{lstlisting}
-Observamos de nuevo, que el ancho de banda es menor que en el primer listado de código, donde no se utilizaba ni \textit{iptables} ni \textit{SIPp}. Con esto deducimos que el marcado de los paquetes está funcionando bien. \\
 
-La última prueba es utilizando las reglas \textit{iptables} y \textit{SIPp}, tras ejecutar dicha prueba el resultado es el siguiente:
-\begin{lstlisting}[style=C,numbers=none]
-root@router:/home/vagrant# iperf -c 10.10.2.2 -i 2
-------------------------------------------------------------
-Client connecting to 10.10.2.2, TCP port 5001
-TCP window size: 85.0 KByte (default)
-------------------------------------------------------------
-[  3] local 10.10.2.1 port 53698 connected with 10.10.2.2 port 5001
-[ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 2.0 sec   239 MBytes  1.00 Gbits/sec
-[  3]  2.0- 4.0 sec   241 MBytes  1.01 Gbits/sec
-[  3]  4.0- 6.0 sec   251 MBytes  1.05 Gbits/sec
-[  3]  6.0- 8.0 sec   262 MBytes  1.10 Gbits/sec
-[  3]  8.0-10.0 sec   250 MBytes  1.05 Gbits/sec
-[  3]  0.0-10.0 sec  1.21 GBytes  1.04 Gbits/sec
-\end{lstlisting}
+\newpage
+\item Puerto \textbf{5060} para el tráfico \textit{SIP}.
+\begin{center}
+\includegraphics[width=6.5cm]{puerto5060Server.jpg}
+\hspace{0.5cm}
+\includegraphics[width=6.5cm]{puerto5060Client.jpg}
+\end{center}
 
-De nuevo, se ha reducido el ancho de banda. Se están produciendo descartes de paquetes marcados como Best Effort, mientras que los paquetes RTP y SIP tienen el ancho de banda necesario para sus comunicaciones.
+\begin{center}
+\textit{Fig. 5: Ejecución de \textit{iperf} en el \textit{servidor}.}
+\hspace{0.5cm}
+\textit{Fig. 6: Ejecución de \textit{iperf} en el \textit{cliente}.}
+\end{center}
+
+\item Puerto \textbf{6980} para el tráfico \textit{RTP}.
+\begin{center}
+\includegraphics[width=6.5cm]{puerto6980Server.jpg}
+\hspace{0.5cm}
+\includegraphics[width=6.5cm]{puerto6980Client.jpg}
+\end{center}
+
+\begin{center}
+\textit{Fig. 7: Ejecución de \textit{iperf} en el \textit{servidor}.}
+\hspace{0.5cm}
+\textit{Fig. 8: Ejecución de \textit{iperf} en el \textit{cliente}.}
+\end{center}
+\end{itemize}
+
+
+Observando las imágenes anteriores, vemos que el reparto del ancho de banda de la \textit{Figura 2} se ha repartido de la manera esperada según el marcaje de los paquetes. En \textit{Fig. 7} y \textit{Fig. 8}, que corresponden con el tráfico en uno de los puertos \textbf{RTP}, obtenemos el mayor ancho de banda (\textbf{575 Mbits/sec}) porque los paquetes estaban marcados como \textit{Expedited Forwarding}. En \textit{Fig 3.} y \textit{Fig.4}, se obtiene un ancho de banda de \textbf{474 Mbits/sec}, el menor de entre los tres casos, pues los paquetes están marcados como \textit{Best Effort}. En \textit{Fig 5.} y \textit{Fig. 6}, correspondientes con el tráfico \textbf{SIP}, es donde obtenemos un ancho de banda comprendido entre los dos anteriores (\textbf{500 Mbits/sec}); esto se justifica porque los paquetes están marcados como \textit{Assured Forwarding}.
+\newpage
+
+\subsection{Captura de paquetes mediante Wireshark.}
+En esta sección, se muestran capturas de Wireshark de paquetes que simulan \textit{RTP} y \textit{SIP}, además de un paquete \textit{TCP} perteneciente a un flujo de otro conjunto de puertos.
+
+Para comprobar el marcaje del paquete, en la siguientes imágenes, observamos la línea ``\textit{Differentiated Services Field}'';
+en el campo DSCP, aparecerá \textbf{CS0} para el caso de los paquetes marcados como \textbf{Best Effort}, \textbf{AF11} para los paquetes marcados como \textbf{Assured Forwarding}, y \textbf{EF PHB} para los paquetes marcados como \textbf{Expedited Forwarding}.
+
+\begin{itemize}
+\item Expedited Forwarding.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{EF.jpg}
+\caption{Paquetes con marcado Expedited Forwarding.}
+\end{figure}
+
+\newpage
+\item Assured Forwarding 11.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{AF11.jpg}
+\caption{Paquetes con marcado Assured Forwarding.}
+\end{figure}
+
+\newpage
+\item Best Effort.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{BestEffort.jpg}
+\caption{Paquetes con marcado Best Effort.}
+\end{figure}
+
+\end{itemize}
+\newpage
+
+\section{Incidencias surgidas en el transcurso de la práctica.}
+Durante el desarrollo de la pŕactica, han surgido importantes incidencias. La más destacada, fue la imposibilidad de generar tráfico RTP. Al principio, usabámos \textit{sipp} para simular llamadas, lo que debería generar tanto tráfico SIP como RTP, pero no era así. Buscamos durante bastante tiempo por todos los medios, pero no conseguimos encontrar una solución al problema.\\
+Tras esto, acudimos a tutorías, y comenzamos a usar \textit{sipp} y generar tráfico en los puertos de RTP. Para ello, mandamos paquetes por los puertos asignados a RTP usando, primero, scripts propios en python, y después, el módulo  \textit{SimpleHTTPServer} desde el servidor, y \textit{wget} en el cliente, con varios procesos. Por diferentes motivos, tampoco conseguimos de esta manera el objetivo de la práctica.\\
+El siguiente paso fue intentarlo estableciendo llamadas reales; para ello, instalamos una interfaz gráfica y \textit{linphone} en el cliente y servidor. Tras configurarlo, conseguimos hacer la llamada, pero al descolgar el programa se cerraba por un error. Dedicamos tiempo a informarnos sobre el error e intentar solucionarlo, pero vimos que muchas personas reportaban esta incidencia para la cual no había una solución. Pensamos que podía ser por la máquina utilizada (\textit{ubuntu/trusty64}), pero probamos con una máquina Debian y tras instalar linphone y probar de nuevo a realizar la llamada, seguía produciéndose el mismo error por lo que decidimos no perder más tiempo en ello y optar por la última opción.\\
+Esta última opción, aportada por el profesor, es la que se presenta en los epígrafes anteriores.\\ \\
+También hubo algunos inconvenientes, lejos de la generación de tráfico RTP, relacionados con la puesta en marcha del escenario, o las reglas \textit{iptables}, pero se pudieron solucionar en un periodo de tiempo reducido. \\
+
+\section{Repositorio.}
+A continuación, adjuntamos el enlace de nuestro repositorio en \textit{GitHub}, donde se pueden ver los distintos pasos que hemos ido realizando para abordar la práctica.\\
+También están incluidos todos los archivos referentes a \textit{Vagrant, Ansible, iptables}, etc., además de la carpeta ``Memoria''. \\ \\
+El enlace del repositorio es: \\ \url{https://github.com/mlopezs/P4-GestionPrioridadTraficoIP_PISS}
+\newpage
 \section{Bibliografía}
 
 \begin{itemize}
@@ -372,7 +400,7 @@ De nuevo, se ha reducido el ancho de banda. Se están produciendo descartes de p
 	\url{https://www.cisco.com/c/en/us/support/docs/quality-of-service-qos/qos-packet-marking/10103-dscpvalues.html}\\ \\
 	\url{https://community.rti.com/kb/how-set-dscp-flag-your-system}
 	
-	\item Acerca de SIPp.
+	\item Acerca de sipp.
 	
 	\url{http://sipp.sourceforge.net/doc/reference.html}
 \end{itemize}

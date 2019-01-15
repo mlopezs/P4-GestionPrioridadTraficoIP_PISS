@@ -2,17 +2,12 @@
 - hosts: all
   become: yes
   tasks:
+
     - name: Update apt
       apt: update_cache=yes
 
     - name: Install iperf
       apt: name=iperf
-
-    - name: Install sip-tester
-      apt: name=sip-tester
-
-    - name: Install linphone
-      apt: name=linphone
 
     - name: Install iptables
       apt: name=iptables-persistent
@@ -25,7 +20,7 @@
 
     - name: Copy iptables rules
       copy:
-        src: iptablesRulesServer
+        src: iptablesRulesClientServer
         dest: /etc/iptables/rules.v4
         owner: root
         group: root
